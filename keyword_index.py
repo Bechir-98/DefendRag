@@ -10,17 +10,28 @@ def create_keyword_index():
     conn=sqlite3.connect(DB_PATH)
 
     conn.execute("DROP TABLE IF EXISTS chunks_fts")
+    conn.execute("DROP TABLE IF EXISTS chunks")
 
     conn.execute("""
-    CREATE VIRTUAL TABLE chunks_fts
-    USING fts5(
-        text,
-        source UNINDEXED,
-        path UNINDEXED,
-        page UNINDEXED,
-        chunk_id UNINDEXED
-    )
-""")
+        CREATE TABLE chunks(
+            chunk_id INTEGER PRIMARY KEY,
+            text TEXT NOT NULL,
+            source TEXT,
+            path TEXT,
+            page INTEGER
+        )
+    """)
+
+    conn.execute("""
+        CREATE VIRTUAL TABLE chunks_fts
+        USING fts5(
+            text,
+            source UNINDEXED,
+            path UNINDEXED,
+            page UNINDEXED,
+            chunk_id UNINDEXED
+        )
+    """)
 
     conn.commit()
 
@@ -28,6 +39,24 @@ def create_keyword_index():
 
 
 def index_chunks(conn,chunks):
+    conn.executemany(
+        """
+        INSERT INTO chunks
+        (chunk_id,text,source,path,page)
+        VALUES (?,?,?,?,?)
+        """,
+        [
+            (
+                chunk["chunk_id"],
+                chunk["text"],
+                chunk["source"],
+                chunk["path"],
+                chunk["page"]
+            )
+            for chunk in chunks
+        ]
+    )
+
     conn.executemany(
         """
         INSERT INTO chunks_fts

@@ -4,3 +4,9 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
+dependencies = [
+    "langgraph>=1.2.11",
+    "numpy>=2.5.2",
+    "sentence-transformers>=5.7.0",
+    "streamlit>=1.61.1",
+]
