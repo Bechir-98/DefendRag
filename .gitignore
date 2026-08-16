@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+.eggs/
+build/
+dist/
+*.so
+
+# Virtual environment
+.venv/
+venv/
+env/
+ENV/
+
+# uv
+uv.lock
+
+# Vector stores / RAG artifacts
+*.faiss
+*.index
+*.db
+*.sqlite
+*.sqlite3
+chroma/
+*.chroma
+vectorstore/
+*.pickle
+*.pkl
+
+# Cache & data
+.cache/
+.ipynb_checkpoints/
+*.log
+data/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ML / model weights
+*.pt
+*.pth
+*.onnx
+*.safetensors
+models/
