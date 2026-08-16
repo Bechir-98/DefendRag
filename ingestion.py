@@ -32,19 +32,24 @@ print("Pages loaded:", len(docs))
 
 
 #build chunks from docs 
-def build_chunks(docs, size=1000, overlap=150):
-    chunks = []
+def build_chunks(docs,size=1000,overlap=150):
+    chunks=[]
+
     for doc in docs:
         text=doc["text"]
         start=0
+
         while start<len(text):
-            chunk_text=text[start:start + size]
+            chunk_text=text[start:start+size]
+
             chunks.append({
+                "chunk_id":len(chunks),
                 "text":chunk_text,
                 "source":doc["source"],
                 "path":doc["path"],
                 "page":doc["page"]
             })
             start+=size-overlap
+
     return chunks
 
