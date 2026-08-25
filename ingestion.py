@@ -2,36 +2,29 @@ from pathlib import Path
 from pypdf import PdfReader
 from tqdm import tqdm
 
+
 def load_all_pdfs(directory):
-    documents = []
+    documents=[]
 
-    pdf_files = list(Path(directory).rglob("*.pdf"))
+    pdf_files=list(Path(directory).rglob("*.pdf"))
 
-    for pdf_path in tqdm(pdf_files, desc="Loading PDFs"):
+    for pdf_path in tqdm(pdf_files,desc="Loading PDFs"):
+        reader=PdfReader(pdf_path)
 
-        reader = PdfReader(pdf_path)
+        for page_number,page in enumerate(reader.pages,start=1):
+            text=page.extract_text()
 
-        for page_number, page in enumerate(reader.pages, start=1):
-
-            text = page.extract_text()
-
-            if text:
+            if text and text.strip():
                 documents.append({
-                    "text": text,
-                    "source": pdf_path.name,
-                    "path": str(pdf_path),
-                    "page": page_number
+                    "text":text,
+                    "source":pdf_path.name,
+                    "path":str(pdf_path),
+                    "page":page_number
                 })
 
     return documents
 
 
-docs = load_all_pdfs("data")
-
-print("Pages loaded:", len(docs))
-
-
-#build chunks from docs 
 def build_chunks(docs,size=1000,overlap=150):
     chunks=[]
 
@@ -53,3 +46,10 @@ def build_chunks(docs,size=1000,overlap=150):
 
     return chunks
 
+
+if __name__=="__main__":
+    docs=load_all_pdfs("data")
+    print("Pages loaded:",len(docs))
+
+    chunks=build_chunks(docs)
+    print("Chunks:",len(chunks))
