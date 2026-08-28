@@ -1,14 +1,20 @@
 import streamlit as st
-from search import search_keyword
+from graph import app
 
 st.title("DefendRag")
+st.caption("AI Security Knowledge Retrieval")
 
-query=st.text_input("Search your documents")
+query=st.text_input("Ask a question about AI security")
 
 if query:
-    results=search_keyword(query,top_k=5)
+    with st.spinner("Searching and generating answer..."):
+        result=app.invoke({"query":query})
 
-    for chunk_id,text,source,path,page,score in results:
-        st.subheader(f"{source} — Page {page}")
-        st.caption(f"Chunk: {chunk_id} | Score: {score:.4f}")
-        st.write(text)
+    st.subheader("Answer")
+    st.write(result["answer"])
+
+    if result["sources"]:
+        st.subheader("Sources")
+        for i,s in enumerate(result["sources"],1):
+            with st.expander(f"{i}. {s['source']} — Page {s['page']} (score: {s['score']:.4f})"):
+                st.write(s["text"])
