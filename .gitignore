@@ -29,6 +29,7 @@ chroma/
 vectorstore/
 *.pickle
 *.pkl
+storage/
 
 # Cache & data
 .cache/
