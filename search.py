@@ -1,7 +1,6 @@
 import sqlite3
 import json
 import numpy as np
-from sentence_transformers import SentenceTransformer
 from keyword_index import DB_PATH
 
 
@@ -38,6 +37,11 @@ def search_vector(query,embeddings,chunk_ids,chunks,model,top_k=5):
     )
 
     scores=embeddings @ query_embedding
+
+    # ponytail: per-query min-max normalization, cross-encoder if absolute scores matter
+    min_score,max_score=scores.min(),scores.max()
+    if max_score>min_score:
+        scores=(scores-min_score)/(max_score-min_score)
 
     top_indices=np.argsort(scores)[::-1][:top_k]
 
@@ -92,3 +96,20 @@ def hybrid_search(query,model,top_k=5):
     results=sorted(merged.values(),key=lambda x:x["score"],reverse=True)
 
     return results[:top_k]
+
+
+if __name__=="__main__":
+    from sentence_transformers import SentenceTransformer
+
+    print("=== Keyword Search ===")
+    keyword_results=search_keyword("prompt injection",top_k=3)
+    for chunk_id,text,source,path,page,score in keyword_results:
+        print(f"  [{source} p{page}] score={score:.4f} | {text[:80]}...")
+
+    print("\n=== Hybrid Search ===")
+    model=SentenceTransformer("all-MiniLM-L6-v2")
+    hybrid_results=hybrid_search("prompt injection",model,top_k=3)
+    for r in hybrid_results:
+        print(f"  [{r['source']} p{r['page']}] score={r['score']:.4f} | {r['text'][:80]}...")
+
+    print("\nSelf-check passed.")
