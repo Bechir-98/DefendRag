@@ -21,7 +21,7 @@ def search_keyword(query,top_k=5):
         ORDER BY score
         LIMIT ?
         """,
-        (query,top_k)
+        (f'"{query}"',top_k)
     )
 
     results=cursor.fetchall()
@@ -48,7 +48,7 @@ def search_vector(query,embeddings,chunk_ids,chunks,model,top_k=5):
     results=[]
 
     for i in top_indices:
-        chunk=chunks[chunk_ids[i]]
+        chunk=chunks[str(chunk_ids[i])]
 
         results.append({
             "chunk_id":chunk["chunk_id"],

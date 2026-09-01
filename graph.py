@@ -1,5 +1,5 @@
 from typing import TypedDict
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer,CrossEncoder
 from search import hybrid_search
 from generate import generate
 from config import TOP_K,EMBEDDING_MODEL
@@ -7,12 +7,20 @@ from config import TOP_K,EMBEDDING_MODEL
 
 # ponytail: load model once at module level, reload if embedding model changes
 _model=None
+# ponytail: cross-encoder downloaded once by sentence-transformers on first use; swap for a domain-tuned reranker if rankings plateau
+_cross=None
 
 def _get_model():
     global _model
     if _model is None:
         _model=SentenceTransformer(EMBEDDING_MODEL)
     return _model
+
+def _get_cross():
+    global _cross
+    if _cross is None:
+        _cross=CrossEncoder("cross-encoder/ms-marco-MiniLM-L6-v2")
+    return _cross
 
 
 class State(TypedDict):
@@ -35,7 +43,14 @@ def rerank(state:State):
     if len(results)<=TOP_K:
         return {"results":results}
 
-    return {"results":results[:TOP_K]}
+    cross=_get_cross()
+    pairs=[(state["query"],r["text"]) for r in results]
+    scores=cross.predict(pairs)
+
+    for r,s in zip(results,scores):
+        r["score"]=float(s)
+
+    return {"results":sorted(results,key=lambda x:x["score"],reverse=True)}
 
 
 def build_context(state:State):
