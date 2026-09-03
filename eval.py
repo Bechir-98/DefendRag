@@ -48,28 +48,46 @@ def evaluate(case):
     return recall,text_term,cited_expected,answer,sources
 
 
-if __name__=="__main__":
-    pass_count=recall_count=cite_count=0
-    n=len(GOLDEN)
+def run_eval():
+    results=[]
+    summary={"pass":0,"recall":0,"cite":0,"total":len(GOLDEN)}
 
     for i,case in enumerate(GOLDEN):
         recall,text_term,cited,answer,sources=evaluate(case)
         ok=all([recall,text_term,cited])
-        total=recall+int(text_term)+int(cited)
 
-        recall_count+=recall
-        cite_count+=cited
-        pass_count+=ok
+        summary["pass"]+=ok
+        summary["recall"]+=recall
+        summary["cite"]+=cited
 
-        status="PASS" if ok else "FAIL"
-        print(f"\n=== {case['query']} [{status} {int(recall)}/1 recall, {int(text_term)}/1 term, {int(cited)}/1 cite]")
-        print(f"  expected source: {case['expected_source']}")
-        print(f"  sources: {sources}")
-        print(f"  answer: {answer[:200] if answer else '(empty)'}")
+        results.append({
+            "query":case["query"],
+            "status":"PASS" if ok else "FAIL",
+            "recall":recall,
+            "term":text_term,
+            "cite":cited,
+            "n_sources":len(sources),
+            "expected_source":case["expected_source"],
+            "sources":sources,
+            "answer":answer,
+        })
 
-        if i<n-1:
+        if i<len(GOLDEN)-1:
             time.sleep(3)
 
-    print(f"\n--- Summary: {pass_count}/{n} fully pass | recall {recall_count}/{n} | citation {cite_count}/{n}")
-    if pass_count<n:
+    return results,summary
+
+
+if __name__=="__main__":
+    results,summary=run_eval()
+
+    for r in results:
+        print(f"\n=== {r['query']} [{r['status']} {int(r['recall'])}/1 recall, {int(r['term'])}/1 term, {int(r['cite'])}/1 cite]")
+        print(f"  expected source: {r['expected_source']}")
+        print(f"  sources: {r['sources']}")
+        print(f"  answer: {r['answer'][:200] if r['answer'] else '(empty)'}")
+
+    n=summary["total"]
+    print(f"\n--- Summary: {summary['pass']}/{n} fully pass | recall {summary['recall']}/{n} | citation {summary['cite']}/{n}")
+    if summary["pass"]<n:
         raise SystemExit(1)
