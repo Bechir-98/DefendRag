@@ -8,6 +8,8 @@ OPENAI_API_KEY=os.environ["OPENAI_API_KEY"]
 OPENAI_API_BASE=os.environ.get("OPENAI_API_BASE","http://localhost:11434/v1")
 MODEL_NAME=os.environ.get("MODEL_NAME","qwen2.5:7b")
 TOP_K=int(os.environ.get("TOP_K","5"))
+MAX_RETRIES=int(os.environ.get("MAX_RETRIES","1"))
+MAX_GRADE_RETRIES=int(os.environ.get("MAX_GRADE_RETRIES","1"))
 EMBEDDING_MODEL=os.environ.get("EMBEDDING_MODEL","all-MiniLM-L6-v2")
 RERANKER_MODEL=os.environ.get("RERANKER_MODEL","cross-encoder/ms-marco-MiniLM-L6-v2")
 

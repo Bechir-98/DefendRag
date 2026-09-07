@@ -25,6 +25,12 @@ is a basic regression harness, not a formal security certification.
     vector search using SentenceTransformers embeddings.
 -   **Cross-encoder reranking:** Re-scores retrieved passages to
     prioritize relevant context.
+-   **Evidence-checked retrieval:** An LLM judge inspects the top-K
+    passages; on thin evidence the agent rewrites the query and
+    retrieves once more (bounded retries), accumulating candidates.
+-   **Answer grading:** A second LLM pass checks the draft answer for
+    context support, citations, and relevance; on failure the agent
+    revises once with the critique attached.
 -   **Workflow orchestration:** Uses LangGraph to coordinate the
     retrieval and answer-generation pipeline.
 -   **Source-backed answers:** Returns answers alongside source
@@ -59,15 +65,30 @@ is a basic regression harness, not a formal security certification.
                          Select Top-K
                               |
                               v
-                       LLM Generation
+                     Check Evidence (LLM judge)
                               |
-                              v
-                       Answer + Sources
+                  +-----------+-----------+
+                  | sufficient            | insufficient (max 1 retry)
+                  v                       v
+           LLM Generation           Rewrite Query
+                  |                       |
+                  v                       v
+             Grade Answer         Hybrid Retrieval (accumulated)
+            (LLM review)                  |
+                  |                       |
+      +-----------+-----------+           |
+      | pass                  | fail    |
+      |                       | (max 1   |
+      v                       | revision)|
+ Answer + Sources <-----------+
 ```
 
 The pipeline separates candidate retrieval, reranking, and generation so
 that retrieval behavior can be inspected and evaluated independently of
-the language model's final response.
+the language model's final response. When the judge finds the evidence
+thin, the agent reformulates the query and retrieves once more instead
+of answering from weak context. A final grading pass revises answers
+that are unsupported, uncited, or off-question.
 
 ## Technology Stack
 
@@ -188,6 +209,10 @@ Retrieved documents should be treated as untrusted input. Before using
 the system in a sensitive environment, test prompt-injection handling,
 access controls where applicable, citation correctness, and behavior
 when the available evidence is insufficient.
+
+Note that the same model grades and generates answers, so the grader
+can share the generator's blind spots — treat a PASS as a coarse filter,
+not a guarantee.
 
 ## Roadmap
 
