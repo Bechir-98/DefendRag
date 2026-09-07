@@ -7,6 +7,7 @@ from keyword_index import DB_PATH
 def search_keyword(query,top_k=5):
     conn=sqlite3.connect(DB_PATH)
 
+    term=query.replace('"',' ')
     cursor=conn.execute(
         """
         SELECT
@@ -21,7 +22,7 @@ def search_keyword(query,top_k=5):
         ORDER BY score
         LIMIT ?
         """,
-        (f'"{query}"',top_k)
+        (f'"{term}"',top_k)
     )
 
     results=cursor.fetchall()
@@ -76,7 +77,8 @@ def hybrid_search(query,model,top_k=5):
     merged={}
 
     for chunk_id,text,source,path,page,score in keyword_results:
-        normalized=1/(1+abs(score))
+        # ponytail: bm25() is negative (more negative = better); map to 0-1 with larger=better
+        normalized=-score/(1-score)
         merged[chunk_id]={
             "chunk_id":chunk_id,
             "text":text,

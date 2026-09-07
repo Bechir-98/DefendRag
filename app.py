@@ -25,7 +25,8 @@ st.sidebar.write(f"**Model:** {MODEL_NAME}")
 st.sidebar.write(f"**Top-K:** {TOP_K}")
 st.sidebar.write(f"**Embeddings:** {EMBEDDING_MODEL}")
 
-chunks=len(json.load(open("storage/chunks.json")))
+abs_path=Path("storage/chunks.json")
+chunks=len(json.load(abs_path.open())) if abs_path.exists() else 0
 pdfs=list(Path("data").rglob("*.pdf"))
 st.sidebar.markdown("---")
 st.sidebar.subheader("Corpus")
@@ -81,7 +82,7 @@ with ask_tab:
         with st.expander(f"{len(st.session_state['history'])} previous queries"):
             for h in st.session_state["history"][:-1]:
                 st.write(f"**Q:** {h['query']}")
-                st.write(f"**A:** {h['result'].get('answer','(empty)')[:300]}...")
+                st.write(f"**A:** {h['result'].get('answer') or '(empty)'}")
                 st.markdown("---")
 
 with eval_tab:
